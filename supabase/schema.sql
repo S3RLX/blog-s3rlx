@@ -30,6 +30,11 @@ create table if not exists public.entries(
  created_at timestamptz default now(), updated_at timestamptz default now(),
  unique(kind,slug));
 
+-- (versi lanjutan) kolom tambahan untuk thumbnail/lampiran/galeri; aman dijalankan ulang
+alter table public.entries add column if not exists meta jsonb not null default '{}'::jsonb;
+alter table public.entries alter column emoji set default 'star';
+update public.entries set emoji='star' where emoji !~ '^[a-z0-9-]+$';
+
 create table if not exists public.media(id uuid primary key default gen_random_uuid(), name text, path text, url text, mime text, size bigint, created_at timestamptz default now());
 create table if not exists public.subscribers(id uuid primary key default gen_random_uuid(), email text unique not null, created_at timestamptz default now());
 create table if not exists public.guestbook(id uuid primary key default gen_random_uuid(), name text not null, message text not null, approved boolean default false, created_at timestamptz default now());
