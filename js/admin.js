@@ -8,8 +8,10 @@ const flash=(t,c)=>{const e=$('#st');if(e){e.textContent=t;e.className='pixel st
 let D,S,draft=null,cur=null,dirty=false,idleOn=0,autosave=localStorage.wcAuto==='1',pvOn=localStorage.wcPv!=='0',dev=localStorage.wcDev||'desktop';
 const ctx={S:()=>S,D:()=>D,live:()=>live(),tab:'warna'};
 
-/* ---------- kunci rahasia admin (opsional) ---------- */
-const K=Store.cfg.adminKey;if(K){if(new URLSearchParams(location.hash.slice(1)).get('k')===K)sessionStorage.wcK=K;if(sessionStorage.wcK!==K){UI.fake404();return}}
+/* ---------- khusus pemilik: admin.html tampil 404 bagi siapa pun tanpa kunci ---------- */
+const K=Store.cfg.adminKey;
+if(K){if(new URLSearchParams(location.hash.slice(1)).get('k')===K)sessionStorage.wcK=K;if(sessionStorage.wcK!==K){UI.fake404();return}}
+else if(!UI.isLocal()){UI.fake404();return}   // di hosting publik tanpa adminKey → disembunyikan total
 
 /* ---------- diagnostik koneksi ---------- */
 async function probe(){try{const r=await sb.from('settings').select('id').limit(1);if(!r.error)return null;const m=r.error.message||'',c=r.error.code||'';
@@ -22,12 +24,13 @@ function setup(reason){const sdk=Store.state.sdk,tried=(window.WCsdk&&WCsdk.trie
  root.innerHTML=`<div class="login glass" style="width:min(680px,94%)"><div class="win-bar"><b></b><b></b><b></b><span>setup.exe</span></div><div class="win-body"><h1 class="chrome">Hubungkan Supabase</h1>
  <div class="diag">${msg||'Siap dihubungkan.'}<br><small>SDK: ${sdk?'termuat':'gagal'} · konfigurasi: ${Store.state.cfg?'ada ('+esc(Store.cfg.src||'')+')':'kosong'}</small></div>
  <form id="cf"><label>Project URL<input type="text" id="cu" placeholder="https://xxxx.supabase.co" value="${esc(Store.cfg.url)}"></label><label>Anon / publishable key<input type="text" id="ck" value="${esc(Store.cfg.key)}"></label>
+ <label>Kunci admin (rahasia) — admin.html akan tampil 404 kecuali dibuka dengan <code>admin.html#k=KUNCI</code><span class="kr"><input type="text" id="cm" value="${esc(Store.cfg.adminKey||'')}" placeholder="kosongkan untuk mode lokal"><button type="button" class="btn sm ghost" id="rk">${ic('dice',14)} Acak</button></span></label>
  <div class="acts"><button class="btn">${ic('check',16)} Simpan &amp; uji koneksi</button><button type="button" class="btn ghost" id="dc">${ic('download',16)} Unduh config.js</button><button type="button" class="btn ghost" id="rt">${ic('refresh',16)} Coba lagi</button></div></form>
- <p class="hint">Disimpan di browser ini. Agar situs publik di hosting juga terhubung, unduh <code>config.js</code> lalu timpa file <code>js/config.js</code>.</p>
- <details><summary class="hint">Panduan setup lengkap</summary><ol class="steps"><li>Buat project di supabase.com → SQL Editor → jalankan <code>supabase/schema.sql</code>.</li><li>Authentication → Users → buat user, lalu jalankan SQL <code>insert into public.admins(user_id) select id from auth.users where email='emailmu';</code></li><li>Isi URL &amp; key di atas.</li></ol></details></div></div>`;
- const rd=()=>({url:$('#cu').value.trim().replace(/\/+$/,'').replace(/\/rest\/v1$/,''),key:$('#ck').value.trim()});
- $('#cf').onsubmit=e=>{e.preventDefault();localStorage.wcCfg=JSON.stringify(rd());location.reload()};
- $('#dc').onclick=()=>{const c=rd();dl('config.js',`window.WC={\n  url:'${c.url}',\n  key:'${c.key}',\n  idleMin:${Store.cfg.idleMin||15},\n  adminKey:'${Store.cfg.adminKey||''}'\n};\n`,'text/javascript')};$('#rt').onclick=()=>location.reload()}
+ <p class="hint">Disimpan di browser ini. Agar situs di hosting juga terhubung, unduh <code>config.js</code> lalu timpa <code>js/config.js</code>. Setelah kunci admin dipasang, buka <code>admin.html#k=KUNCI</code>.</p></div></div>`;
+ const rd=()=>({url:$('#cu').value.trim().replace(/\/+$/,'').replace(/\/rest\/v1$/,''),key:$('#ck').value.trim(),adminKey:$('#cm').value.trim()});
+ $('#rk').onclick=()=>{$('#cm').value=[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(36).padStart(2,'0')).join('').slice(0,20)};
+ $('#cf').onsubmit=e=>{e.preventDefault();const c=rd();localStorage.wcCfg=JSON.stringify(c);if(c.adminKey)sessionStorage.wcK=c.adminKey;location.reload()};
+ $('#dc').onclick=()=>{const c=rd();dl('config.js',`window.WC={\n  url:'${c.url}',\n  key:'${c.key}',\n  idleMin:${Store.cfg.idleMin||15},\n  adminKey:'${c.adminKey}'\n};\n`,'text/javascript')};$('#rt').onclick=()=>location.reload()}
 
 /* ---------- auth ---------- */
 function login(msg){root.innerHTML=`<div class="login glass"><div class="win-bar"><b></b><b></b><b></b><span>login.exe</span></div><form class="win-body"><h1 class="chrome">Panel admin</h1><p class="lead" style="margin:.6rem 0 1.2rem">Masuk untuk mengelola blogmu.</p><label>Email<input type="email" id="em" autocomplete="username" required></label><label>Kata sandi<input type="password" id="pw" autocomplete="current-password" required></label><button class="btn" style="width:100%;justify-content:center">Masuk</button><p id="err" class="err">${esc(msg||'')}</p><p class="hint"><a href="#" id="cfg">Ubah koneksi Supabase</a></p></form></div>`;
@@ -46,21 +49,21 @@ function startIdle(){if(idleOn)return;idleOn=1;let t;const m=+localStorage.wcIdl
 
 /* ---------- preview realtime ---------- */
 const DEVW={mobile:390,tablet:768,desktop:1280};
-function fit(){const fr=$('#fr'),b=$('#fw');if(!fr||!b)return;const W=DEVW[dev],k=Math.min(1,b.clientWidth/W);fr.style.cssText=`width:${W}px;height:${b.clientHeight/k}px;transform:scale(${k});transform-origin:top center;margin-left:${(b.clientWidth-W)/2}px`}
-function push(){const fr=$('#fr');if(fr&&fr.contentWindow)fr.contentWindow.postMessage({wc:'state',settings:S,draft,media:D.media},'*')}
+function fit(){const fr=$('#fr'),b=$('#fw');if(!fr||!b||!b.clientWidth||!b.clientHeight)return;const W=DEVW[dev],k=Math.min(1,b.clientWidth/W);fr.style.cssText=`width:${W}px;height:${b.clientHeight/k}px;transform:scale(${k});transform-origin:top center;margin-left:${(b.clientWidth-W)/2}px`}
+function push(){const fr=$('#fr');if(fr&&fr.contentWindow)fr.contentWindow.postMessage({wc:'state',settings:S,draft,media:D.media,tracks:D.tracks},'*')}
 const pushD=deb(push,30);
 function syncFrame(){const fr=$('#fr');if(!fr)return;const h=location.hash,u=/#\/edit\/post/.test(h)?'post.html?embed=1&draft=1':/#\/edit\/page/.test(h)?'page.html?embed=1&draft=1':'index.html?embed=1';if(fr.dataset.u!==u){fr.dataset.u=u;fr.src=u}else push();fit()}
 addEventListener('message',e=>{if(e.data&&e.data.wc==='ready')push()});addEventListener('resize',deb(fit,100));
 function live(){pushD();dirty=true;flash(autosave?'Menyimpan…':'Belum disimpan',autosave?'':'warn');if(autosave)aSave()}
 async function saveSettings(msg){flash('Menyimpan…');const {error}=await sb.from('settings').upsert({id:1,data:S,updated_at:new Date().toISOString()});if(error){toast(error.message,1);flash('Gagal menyimpan','err')}else{dirty=false;flash('Tersimpan','ok');if(msg)toast(msg)}}
 const aSave=deb(()=>saveSettings(),900);
-async function reload(){const n=await Store.load();D.entries=n.entries;D.media=n.media;D.gb=n.gb;D.hits=n.hits}
+async function reload(){const n=await Store.load();D.entries=n.entries;D.media=n.media;D.gb=n.gb;D.hits=n.hits;D.tracks=n.tracks}
 addEventListener('beforeunload',e=>{if(dirty&&!autosave){e.preventDefault();e.returnValue=''}});
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();cur&&cur()}});
 
 /* ---------- shell + router ---------- */
-const NAV=[['dash','home','Dashboard'],['posts','edit','Artikel'],['pages','file','Halaman'],['media','image','Media & file'],['fonts','type','Font'],['look','palette','Tampilan'],['layout','layout','Layout beranda'],['gen','settings','Pengaturan'],['inbox','mail','Kotak masuk'],['security','lock','Keamanan'],['backup','download','Backup']];
-function shell(){root.innerHTML=`<div class="top glass"><b class="logo chrome">${esc(S.site.name)}</b><span id="st" class="pixel st"></span><label class="sw"><input type="checkbox" id="au"> Auto-simpan</label><label class="sw"><input type="checkbox" id="pvt"> Live preview</label><button class="btn sm" id="svb">${ic('check',15)} Simpan</button><a class="btn sm ghost" href="adjust.html" target="_blank">${ic('sliders',15)} Adjustment</a><a class="btn sm ghost" href="index.html" target="_blank">${ic('external',15)} Situs</a><button class="btn sm ghost" id="out">${ic('logout',15)} Keluar</button></div>
+const NAV=[['dash','home','Dashboard'],['posts','edit','Artikel'],['pages','file','Halaman'],['profile','user','Profil'],['music','music','Musik'],['media','image','Media & file'],['fonts','type','Font'],['look','palette','Tampilan'],['layout','layout','Layout beranda'],['gen','settings','Pengaturan'],['inbox','mail','Kotak masuk'],['security','lock','Keamanan'],['backup','download','Backup']];
+function shell(){root.innerHTML=`<div class="top glass">${S.profile.avatar?`<span class="topav">${avPrev(30)}</span>`:''}<b class="logo chrome">${esc(S.site.name)}</b><span id="st" class="pixel st"></span><label class="sw"><input type="checkbox" id="au"> Auto-simpan</label><label class="sw"><input type="checkbox" id="pvt"> Live preview</label><button class="btn sm" id="svb">${ic('check',15)} Simpan</button><a class="btn sm ghost" href="adjust.html" target="_blank">${ic('sliders',15)} Adjustment</a><a class="btn sm ghost" href="index.html" target="_blank">${ic('external',15)} Situs</a><button class="btn sm ghost" id="out">${ic('logout',15)} Keluar</button></div>
 <div class="shell${pvOn?' pv-on':''}" id="sh"><aside class="side glass">${NAV.map(n=>`<a href="#/${n[0]}" data-r="${n[0]}">${ic(n[1],17)} ${n[2]}</a>`).join('')}</aside><main class="view" id="view"></main>
 <aside class="pvbox glass" id="pvb"><div class="pvbar"><span class="pixel">live preview</span>${[['mobile','smartphone'],['tablet','tablet'],['desktop','monitor']].map(d=>`<button class="btn sm ghost" data-dv="${d[0]}" title="${d[0]}">${ic(d[1],15)}</button>`).join('')}<button class="btn sm ghost" id="rl" title="Muat ulang">${ic('refresh',15)}</button></div><div class="fw" id="fw"><iframe id="fr" title="Preview" sandbox="allow-scripts allow-same-origin"></iframe></div></aside></div>`;
  $('#au').checked=autosave;$('#pvt').checked=pvOn;$('#au').onchange=e=>{autosave=e.target.checked;localStorage.wcAuto=autosave?1:0;if(autosave&&dirty)aSave()};
@@ -68,9 +71,9 @@ function shell(){root.innerHTML=`<div class="top glass"><b class="logo chrome">$
  $('#svb').onclick=()=>cur&&cur();$('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
  $$('[data-dv]').forEach(b=>b.onclick=()=>{dev=b.dataset.dv;localStorage.wcDev=dev;fit()});$('#rl').onclick=()=>{const f=$('#fr');f.src=f.src};
  onhashchange=go;go()}
-function go(){const p=(location.hash.slice(2)||'dash').split('/'),v=$('#view');draft=null;v.oninput=v.onchange=v.onclick=null;cur=()=>saveSettings('Tersimpan');
+function go(){const p=(location.hash.slice(2)||'dash').split('/'),v=$('#view');draft=null;v.oninput=v.onchange=v.onclick=null;ctx.rerender=null;cur=()=>saveSettings('Tersimpan');
  $$('.side [data-r]').forEach(a=>a.classList.toggle('on',a.dataset.r===(p[0]==='edit'?(p[1]==='page'?'pages':'posts'):p[0])));
- ({dash,posts:()=>list(v,'post'),pages:()=>list(v,'page'),edit:()=>edit(v,p[1],p[2]),media,fonts,look:()=>look(v,ctx),layout,gen,inbox,security,backup}[p[0]]||dash)(v);syncFrame();scrollTo(0,0)}
+ ({dash,posts:()=>list(v,'post'),pages:()=>list(v,'page'),edit:()=>edit(v,p[1],p[2]),profile,music,media,fonts,look:()=>look(v,ctx),layout,gen,inbox,security,backup}[p[0]]||dash)(v);syncFrame();scrollTo(0,0)}
 
 /* ---------- dashboard ---------- */
 async function dash(v){v.innerHTML='<h1 class="chrome">Dashboard</h1><div id="ds"></div>';
@@ -153,6 +156,41 @@ function edit(v,kind,id){const isP=kind==='post',isNew=id==='new',back='#/'+(isP
  upd()}
 const ICONS_OK=n=>DECOR.includes(n);
 
+
+/* ---------- profil (khusus pemilik) ---------- */
+function avPrev(sz){const P=S.profile,m=D.media.find(x=>x.id===P.avatar);return `<span class="av av-${esc(P.shape)} ring-${esc(P.ring)}" style="--s:${sz}px">${m?`<img src="${esc(m.url)}" alt="">`:`<span class="ai">${ic('user',Math.round(sz*.5))}</span>`}<i class="pres pres-${esc(P.presence)}"></i></span>`}
+function profile(v){const draw=()=>{v.innerHTML=`<h1 class="chrome">Profil</h1><div class="panel glass two"><div class="pvav">${avPrev(S.profile.size)}</div><div><h3>Foto profil &amp; banner</h3><p class="hint" style="margin:0 0 1rem">Mendukung gambar <b>JPG, PNG, WebP, dan GIF animasi</b> (GIF tidak dikompres agar tetap bergerak).</p><div class="acts"><button class="btn sm" id="au1">${ic('upload',15)} Unggah foto profil</button><button class="btn sm ghost" id="au2">${ic('image',15)} Unggah banner</button></div><input type="file" id="fa" accept="image/*" hidden><input type="file" id="fb" accept="image/*" hidden></div></div>${panels(UI.SCHEMA.profil,S)}`;bind(v,{...ctx,rerender:draw});
+  const up=(btn,inp,key)=>{$(btn).onclick=()=>$(inp).click();$(inp).onchange=async e=>{const [m]=await upl([...e.target.files]);if(m){S.profile[key]=m.id;live();draw()}}};up('#au1','#fa','avatar');up('#au2','#fb','banner')};draw()}
+
+/* ---------- musik ---------- */
+async function id3(file){try{const h=new Uint8Array(await file.slice(0,10).arrayBuffer());if(String.fromCharCode(h[0],h[1],h[2])!=='ID3')return{};const ver=h[3],size=((h[6]&127)<<21)|((h[7]&127)<<14)|((h[8]&127)<<7)|(h[9]&127);
+ const b=new Uint8Array(await file.slice(10,10+Math.min(size,14e6)).arrayBuffer()),out={};let p=0;const dec=(e,u)=>new TextDecoder(e===1?'utf-16le':e===2?'utf-16be':e===3?'utf-8':'iso-8859-1').decode(u).replace(/\0+$/,'').replace(/^\uFEFF/,'');
+ while(p+10<b.length){const id=String.fromCharCode(b[p],b[p+1],b[p+2],b[p+3]);if(!/^[A-Z0-9]{4}$/.test(id))break;
+  const fs=ver===4?((b[p+4]&127)<<21)|((b[p+5]&127)<<14)|((b[p+6]&127)<<7)|(b[p+7]&127):((b[p+4]<<24)|(b[p+5]<<16)|(b[p+6]<<8)|b[p+7])>>>0,d=b.subarray(p+10,p+10+fs);p+=10+fs;
+  if(id[0]==='T'&&id!=='TXXX'){const m={TIT2:'title',TPE1:'artist',TALB:'album',TYER:'year',TDRC:'year',TCON:'genre'}[id];if(m)out[m]=dec(d[0],d.subarray(1)).slice(0,m==='year'?4:200)}
+  else if(id==='APIC'){const enc=d[0];let i=1;while(d[i])i++;const mime=String.fromCharCode(...d.subarray(1,i));i+=2;if(enc===1||enc===2){while(i<d.length&&!(d[i]===0&&d[i+1]===0))i+=2;i+=2}else{while(d[i])i++;i++}out.pic=new Blob([d.subarray(i)],{type:mime.includes('/')?mime:'image/jpeg'})}}
+ return out}catch(e){return{}}}
+const durOf=f=>new Promise(ok=>{const a=new Audio(),u=URL.createObjectURL(f);a.preload='metadata';a.onloadedmetadata=()=>{ok(Math.round(a.duration)||0);URL.revokeObjectURL(u)};a.onerror=()=>ok(0);a.src=u});
+async function music(v){
+ const tr=()=>D.tracks||[];
+ const draw=()=>{v.innerHTML=`<h1 class="chrome">Musik</h1>
+ <div class="panel glass"><label class="drop" id="dz">${ic('music',28)}<span>Tarik file audio (mp3, m4a, ogg, wav, flac) — judul, artis, album, tahun, genre &amp; sampul dibaca otomatis dari tag ID3</span><input type="file" id="fi" accept="audio/*,.mp3,.m4a,.flac,.ogg,.wav" multiple hidden></label><p class="hint" id="pg">Aktifkan pemutar di bagian “Pengaturan pemutar” di bawah.</p></div>
+ <div id="tl">${tr().map((t,i)=>{const c=D.media.find(a=>a.id===t.cover),au=D.media.find(a=>a.id===t.audio);return `<div class="glass trk" data-id="${t.id}"><div class="tcov">${c?`<img src="${esc(c.url)}" alt="">`:ic('music',26)}</div><div class="tf"><div class="row"><label>Judul<input type="text" data-f="title" value="${esc(t.title)}"></label><label>Artis<input type="text" data-f="artist" value="${esc(t.artist)}"></label><label>Album<input type="text" data-f="album" value="${esc(t.album)}"></label></div><div class="row"><label>Tahun<input type="text" data-f="year" value="${esc(t.year)}" maxlength="4"></label><label>Genre<input type="text" data-f="genre" value="${esc(t.genre)}"></label><label>Kecepatan bawaan lagu<input type="number" step="0.05" min="0.5" max="2" data-f="speed" value="${t.speed||1}"></label></div><small class="hint">${au?esc(au.name)+' · '+fsz(au.size):'file audio hilang'} · ${t.duration?Math.floor(t.duration/60)+':'+String(t.duration%60).padStart(2,'0'):''}</small></div><div class="tb2"><label class="sw" title="Tampilkan di pemutar"><input type="checkbox" data-f="active" ${t.active!==false?'checked':''}></label><button class="btn sm ghost" data-a="cov" title="Ganti sampul">${ic('image',14)}</button><button class="btn sm ghost" data-a="lrc" title="Lirik (LRC)">${ic('mic',14)}</button><button class="btn sm ghost" data-a="up" ${i?'':'disabled'}>${ic('chevron-up',14)}</button><button class="btn sm ghost" data-a="dn" ${i<tr().length-1?'':'disabled'}>${ic('chevron-down',14)}</button><button class="btn sm ghost" data-a="del">${ic('trash',14)}</button></div></div>`}).join('')||'<p class="empty">Belum ada lagu.</p>'}</div>
+ <div class="panel glass"><h3>Pengaturan pemutar</h3><p class="hint" style="margin:0">Atur gaya, visualizer, nightcore, dan info yang tampil. Lihat hasilnya di live preview.</p></div>${panels(UI.SCHEMA.player,S)}`;
+  bind(v,{...ctx,rerender:draw});dz($('#dz'),add);$('#fi').onchange=e=>add([...e.target.files])};
+ const add=async fs=>{fs=fs.filter(f=>f.type.startsWith('audio/')||/\.(mp3|m4a|flac|ogg|wav|aac)$/i.test(f.name));let n=0;
+  for(const f of fs){n++;$('#pg').textContent=`Memproses ${n}/${fs.length}: ${f.name}…`;try{const tg=await id3(f),dur=await durOf(f),[am]=await upl([f]);if(!am)continue;let cid='';if(tg.pic&&tg.pic.size>500){const ext=(tg.pic.type.split('/')[1]||'jpg').replace('jpeg','jpg'),[cm]=await upl([new File([tg.pic],(tg.title||f.name)+' (sampul).'+ext,{type:tg.pic.type})]);if(cm)cid=cm.id}
+   const {error}=await sb.from('tracks').insert({title:tg.title||f.name.replace(/\.[^.]+$/,''),artist:tg.artist||'',album:tg.album||'',year:tg.year||'',genre:tg.genre||'',audio:am.id,cover:cid,duration:dur,sort:Math.max(0,...tr().map(t=>t.sort||0))+1});if(error)throw error;await reload()}catch(e){toast(/tracks/.test(e.message||'')?'Jalankan ulang supabase/schema.sql (tabel tracks belum ada)':(e.message||'Gagal'),1)}}
+  $('#pg').textContent=fs.length?'Selesai':'';draw();push()};
+ draw();
+ const upd=async(id,p)=>{const {error}=await sb.from('tracks').update(p).eq('id',id);if(error)toast(error.message,1);else{await reload();push()}};
+ v.onchange=e=>{const f=e.target.dataset.f;if(!f)return;const id=e.target.closest('.trk').dataset.id;upd(id,{[f]:f==='active'?e.target.checked:f==='speed'?+e.target.value||1:e.target.value})};
+ v.onclick=async e=>{const b=e.target.closest('[data-a]');if(!b||!b.closest('.trk'))return;const id=b.closest('.trk').dataset.id,t=tr().find(x=>x.id===id),a=b.dataset.a,i=tr().findIndex(x=>x.id===id);
+  if(a==='del'&&confirm('Hapus lagu ini? (file audio tetap ada di Media)')){await sb.from('tracks').delete().eq('id',id);await reload();draw();push()}
+  if(a==='cov')pickMedia(()=>D,async m=>{await upd(id,{cover:m.id});draw()},'image');
+  if(a==='lrc'){const o=document.createElement('div');o.className='modal';o.innerHTML=`<div class="glass box"><div class="win-bar"><b></b><b></b><b></b><span>lirik — ${esc(t.title)}</span></div><div class="win-body"><p class="hint">Tempel lirik. Format LRC ber-timestamp, mis. <code>[00:12.50] baris lirik</code>, akan disinkronkan dengan lagu.</p><textarea id="lt" rows="14" style="width:100%;font-family:ui-monospace,monospace">${esc(t.lyrics||'')}</textarea><div class="acts" style="margin-top:1rem"><button class="btn sm" id="ls">Simpan</button><button class="btn ghost sm" id="lc">Batal</button></div></div></div>`;document.body.appendChild(o);$('#lc',o).onclick=()=>o.remove();$('#ls',o).onclick=async()=>{await upd(id,{lyrics:$('#lt',o).value});o.remove();toast('Lirik tersimpan')}}
+  if(a==='up'||a==='dn'){const j=a==='up'?i-1:i+1,o=tr()[j];if(!o)return;await sb.from('tracks').update({sort:o.sort}).eq('id',t.id);await sb.from('tracks').update({sort:t.sort}).eq('id',o.id);await reload();draw();push()}}}
+
 /* ---------- media ---------- */
 function media(v){let flt='all',q='';
  v.innerHTML=`<h1 class="chrome">Media &amp; file</h1><div class="panel glass"><label class="drop" id="dz">${ic('upload',28)}<span>Tarik file apa saja ke sini atau klik untuk upload — gambar, video, audio, PDF, ZIP, dokumen (maks 50 MB)</span><input type="file" id="fi" multiple hidden></label><label class="sw" style="margin-top:1rem"><input type="checkbox" id="sk"> Kecilkan gambar besar otomatis (maks 1920px)</label><p class="hint" id="pg"></p></div>
@@ -185,7 +223,7 @@ const SN={hero:'Hero (judul utama)',marquee:'Teks berjalan',featured:'Pilihan ed
 function layout(v){const L=S.layout.sections;v.innerHTML=`<h1 class="chrome">Layout beranda</h1><div class="panel glass"><p class="hint" style="margin:0 0 1rem">Nyalakan/matikan bagian dan ubah urutannya. Perubahan tampil langsung di preview.</p>${L.map((s,i)=>`<div class="glass sec"><label class="sw"><input type="checkbox" data-i="${i}" ${s.on?'checked':''}></label><b>${SN[s.id]||s.id}</b><button class="btn sm ghost" data-m="${i}:-1" ${i?'':'disabled'}>${ic('chevron-up',15)}</button><button class="btn sm ghost" data-m="${i}:1" ${i<L.length-1?'':'disabled'}>${ic('chevron-down',15)}</button></div>`).join('')}</div>`;
  v.onchange=e=>{if(e.target.dataset.i!=null){L[e.target.dataset.i].on=e.target.checked?1:0;live()}};
  v.onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;const [i,d]=b.dataset.m.split(':').map(Number);[L[i],L[i+d]]=[L[i+d],L[i]];layout(v);live()}}
-function gen(v){v.innerHTML=`<h1 class="chrome">Pengaturan</h1>${panels(UI.SCHEMA.gen,S)}`;bind(v,ctx)}
+function gen(v){v.innerHTML=`<h1 class="chrome">Pengaturan</h1>${panels(UI.SCHEMA.gen,S)}`;bind(v,{...ctx,rerender:()=>gen(v)})}
 
 /* ---------- kotak masuk ---------- */
 async function inbox(v){v.innerHTML='<h1 class="chrome">Kotak masuk</h1><p class="hint">Memuat…</p>';

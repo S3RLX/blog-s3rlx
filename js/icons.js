@@ -61,6 +61,15 @@ wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6
 clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
 'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>','arrow-right':'<path d="M5 12h14M12 5l7 7-7 7"/>',
 'chevron-up':'<path d="m18 15-6-6-6 6"/>','chevron-down':'<path d="m6 9 6 6 6-6"/>',
+pause:'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+'skip-back':'<polygon points="19 20 9 12 19 4 19 20"/><path d="M5 19V5"/>','skip-forward':'<polygon points="5 4 15 12 5 20 5 4"/><path d="M19 5v14"/>',
+shuffle:'<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',repeat:'<path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3"/>',
+volume:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>','volume-x':'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="m23 9-6 6M17 9l6 6"/>',
+mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>',
+user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17v4M17 19h4"/>',
+headphones:'<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>','rotate':'<path d="M21 2v6h-6M21 13a9 9 0 1 1-3-7.7L21 8"/>',
 wand:'<path d="m15 4 5 5L8 21l-5-5zM14 5l5 5"/>',panel:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>'};
 const DECOR=['star','disc','heart','zap','droplet','globe','tag','book','music','image','play','layers','moon','sun','cloud','flame','code','camera','coffee','gamepad','message','paperclip','link'];
 const ic=(n,s=18)=>`<svg class="ic" viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${Icons[n]||Icons.star}</svg>`;

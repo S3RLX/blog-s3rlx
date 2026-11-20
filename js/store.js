@@ -6,23 +6,28 @@ site:{name:'pixel dreamer',tagline:'Catatan tentang desain, kode, dan nostalgia 
  heroKicker:'> selamat datang di ruang kecilku',heroTitle:'Web yang\nberkilau lagi.',heroSub:'Catatan tentang desain, kode, dan nostalgia internet — ditulis seperti surat untuk teman lama.',
  btn1:'Baca artikel terbaru',btn1Url:'#artikel',btn2:'Langganan',btn2Url:'#langganan',stickerIcon:'disc',stickerImage:'',
  postsTitle:'Tulisan terbaru',postsLimit:0,featTitle:'Pilihan editor',marquee:'artikel baru tiap minggu\nglass & chrome\nweb 2000-an\nditulis dengan cinta',
- customTitle:'',customBody:'',nlTitle:'Surat mingguan, tanpa spam.',nlSub:'Satu email tiap Jumat berisi tulisan baru dan tautan menarik.',
+ customTitle:'',customBody:'',heroBadge:'',heroImage:'',jpFeat:'ピックアップ',jpPosts:'最新記事',jpGuest:'ゲストブック',jpNews:'ニュースレター',nlTitle:'Surat mingguan, tanpa spam.',nlSub:'Satu email tiap Jumat berisi tulisan baru dan tautan menarik.',
  gbTitle:'Buku tamu',gbSub:'Tinggalkan jejak di sini — pesan tampil setelah disetujui.',navExtra:'',social:'',maintenance:0,maintMsg:'Situs sedang dirapikan. Kembali sebentar lagi.'},
 theme:{pink:'#ff5fd2',cyan:'#5ff5ff',lime:'#d4ff5f',violet:'#8a5cff',bg:'#0a0618',ink:'#f4efff',mute:'#b9aedd',link:'#5ff5ff',sel:'#ff5fd2',
  fDisplay:'Unbounded',fBody:'Space Grotesk',fPixel:'VT323',base:16,lh:1.7,hw:800,ls:-.03,upper:0,h2s:1,pSize:1,
  blur:20,glass:7,sat:170,border:28,radius:22,shadow:60,width:1120,cardw:290,sp:1,gap:1,layout:'grid',heroAlign:'left',heroSize:1,btn:'chrome',navStyle:'float',
- speed:1,ease:'smooth',aurora:100,trans:'circle',rev:'rise',mqSpeed:26,mqSize:1,cursor:'auto',glowI:22,css:''},
+ speed:1,ease:'smooth',aurora:100,ui:'webcore',heroLayout:'standard',heroFx:'none',trans:'circle',rev:'rise',mqSpeed:26,mqSize:1,cursor:'auto',glowI:22,css:''},
 thumbs:{ratio:'16/10',fit:'cover',hover:'zoom',pos:'50% 50%',tag:1,excerpt:1,date:0,read:0,auto:1,big:1},
 wall:{mode:'aurora',c1:'#1a0b3d',c2:'#3d0b4a',c3:'#0b2a4a',c4:'#0a0618',gtype:'linear',angle:135,image:'',video:'',imgFit:'cover',imgBlur:0,imgOp:100,parallax:0,
  overlay:'#000000',overlayOp:0,pattern:'none',patColor:'#ffffff',patOp:8,patSize:28,dyn:'off',dynSpeed:40,dynRange:360,dynAurora:1,dynAccent:0},
 fx:{aurora:1,glow:1,trail:0,stars:1,grain:0,scan:0,chrome:1,marquee:1,reveal:1,transition:1,tilt:1,sticker:1,counter:1,search:1,filters:1,progress:1,winbar:1,scrollbar:1},
-layout:{sections:[{id:'hero',on:1},{id:'marquee',on:1},{id:'featured',on:0},{id:'posts',on:1},{id:'custom',on:0},{id:'guestbook',on:1},{id:'newsletter',on:1}]},
+layout:{sections:[{id:'hero',on:1},{id:'profile',on:1},{id:'marquee',on:1},{id:'featured',on:0},{id:'posts',on:1},{id:'custom',on:0},{id:'guestbook',on:1},{id:'newsletter',on:1}]},
+profile:{name:'',handle:'',bio:'',status:'',location:'',avatar:'',banner:'',shape:'circle',ring:'gradient',size:120,presence:'online',links:'',home:1,navAvatar:0,byline:1},
+player:{on:0,style:'nightcore',pos:'br',open:0,autoplay:0,resume:1,loop:'all',shuffle:0,volume:70,speed:1,nc:0,reverb:0,bass:0,viz:'bars',vizColor:'accent',vizBars:48,vizSens:1,cover:'spin',shape:'circle',glow:1,bg:'blur',size:1,useAccent:0,accent:'#ff5fd2',pages:'all',sTitle:1,sArtist:1,sAlbum:1,sMeta:1,sTime:1,sLyrics:1,sList:1,sFx:1,media:1},
+particles:{type:'none',count:40,speed:1,size:1,auto:1,color:'#ffb7d5',opacity:80,wind:30,front:0},
+maint:{title:'Sedang Perawatan',eta:'',progress:0,image:'',style:'anime',timer:1,subscribe:0,player:0},
+presets:[],
 fonts:[]};
 const FONTS={Unbounded:'Unbounded:wght@500;800',Syne:'Syne:wght@500;800','Bricolage Grotesque':'Bricolage+Grotesque:wght@500;800',Bungee:'Bungee','Rubik Mono One':'Rubik+Mono+One','Dela Gothic One':'Dela+Gothic+One',
  'Space Grotesk':'Space+Grotesk:wght@400;500;600',Inter:'Inter:wght@400;600;800','DM Sans':'DM+Sans:wght@400;600;800',Manrope:'Manrope:wght@400;600;800',Lora:'Lora:wght@400;600','JetBrains Mono':'JetBrains+Mono:wght@400;600',
- VT323:'VT323','Press Start 2P':'Press+Start+2P',Silkscreen:'Silkscreen:wght@400;700',DotGothic16:'DotGothic16'};
+ VT323:'VT323','Press Start 2P':'Press+Start+2P',Silkscreen:'Silkscreen:wght@400;700',DotGothic16:'DotGothic16','Mochiy Pop One':'Mochiy+Pop+One','Rampart One':'Rampart+One','Yusei Magic':'Yusei+Magic','Zen Maru Gothic':'Zen+Maru+Gothic:wght@500;700',Bangers:'Bangers','Potta One':'Potta+One','Reggae One':'Reggae+One','M PLUS Rounded 1c':'M+PLUS+Rounded+1c:wght@500;800'};
 const E=(id,title,cat,icon,c1,c2,excerpt,content,kind='post',nav=false)=>({id,kind,title,slug:title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),cat,emoji:icon,c1,c2,cover:'',excerpt,content,status:'published',nav,pinned:false,tags:[],meta:{},publish_at:'2026-11-01T00:00:00Z'});
-const DEMO=[E('d1','Selamat datang di mode demo','Info','star','#8a5cff','#ff5fd2','Situs belum terhubung ke Supabase, jadi ini hanya contoh.','Ini adalah **mode demo**. Hubungkan Supabase lewat admin.html, lalu semua yang kamu tulis tersimpan di database.\n\n> Situs pribadi adalah kamar, bukan etalase.\n\n[[Buka admin|admin.html]]'),
+const DEMO=[E('d1','Selamat datang di mode demo','Info','star','#8a5cff','#ff5fd2','Situs belum terhubung ke Supabase, jadi ini hanya contoh.','Ini adalah **mode demo**. Hubungkan Supabase, lalu semua yang kamu tulis tersimpan di database.\n\n> Situs pribadi adalah kamar, bukan etalase.'),
  E('d2','Chrome, gradien, dan kaca','Desain','layers','#5ff5ff','#8a5cff','Semua efek bisa diatur dari panel admin.','Atur **blur**, warna, font, wallpaper, dan animasi lewat menu Tampilan.'),
  E('d3','Tentang','','heart','#ff5fd2','#d4ff5f','','Halo! Ini halaman contoh.','page',true)];
 
@@ -71,9 +76,10 @@ function wallpaper(S,media){const W=S.wall,B=document.body;let wp=document.query
  if(W.mode==='solid')bg=W.c1;
  else if(W.mode==='gradient')bg=W.gtype==='radial'?`radial-gradient(circle at var(--wpx,50%) var(--wpy,30%),${stops})`:W.gtype==='conic'?`conic-gradient(from ${W.angle}deg at var(--wpx,50%) var(--wpy,50%),${stops},${W.c1})`:`linear-gradient(${W.angle}deg,${stops})`;
  else if(W.mode==='image'&&img)bg=`url("${img.url}") center/${W.imgFit} no-repeat`;
- base.style.cssText=`background:${bg};opacity:${W.mode==='image'?W.imgOp/100:1};filter:blur(${W.mode==='image'?W.imgBlur:0}px)${W.mode==='image'&&W.imgBlur?';inset:-30px':''};${W.parallax?'transform:scale(1.12) translateY(var(--wpy-s,0px))':''}`;
+ const bl=(W.mode==='image'||W.mode==='video')?W.imgBlur:0;document.documentElement.style.setProperty('--wpb',bl+'px');
+ base.style.cssText=`background:${bg};opacity:${W.mode==='image'?W.imgOp/100:1};${bl?'inset:-40px;':''}${W.parallax?'transform:scale(1.12) translateY(var(--wpy-s,0px))':''}`;
  const vu=(W.mode==='video'&&vd)?vd.url:'';if(vid.dataset.u!==vu){vid.dataset.u=vu;vid.innerHTML=vu?`<video src="${esc(vu)}" muted loop autoplay playsinline></video>`:'';const v=vid.firstChild;if(v&&v.play)v.play().catch(()=>{})}
- vid.style.opacity=W.imgOp/100;vid.style.filter=`blur(${W.imgBlur}px)`;
+ vid.style.opacity=W.imgOp/100;vid.style.inset=bl?'-40px':'0';
  ov.style.cssText=`background:${W.overlay};opacity:${W.overlayOp/100}`;
  const pc=W.patColor,ps=W.patSize,P={dots:`radial-gradient(${pc} 1.2px,transparent 1.6px)`,grid:`linear-gradient(${pc} 1px,transparent 1px),linear-gradient(90deg,${pc} 1px,transparent 1px)`,stripes:`repeating-linear-gradient(45deg,${pc} 0 1px,transparent 1px ${Math.round(ps/2)}px)`,checker:`conic-gradient(${pc} 25%,transparent 0 50%,${pc} 0 75%,transparent 0)`}[W.pattern];
  pat.style.cssText=P?`background-image:${P};background-size:${ps}px ${ps}px;opacity:${W.patOp/100}`:'display:none'}
@@ -92,19 +98,20 @@ function theme(S,media=[]){const T=S.theme,th=S.thumbs,r=document.documentElemen
  let l=document.getElementById('gfont');if(!l){l=document.createElement('link');l.id='gfont';l.rel='stylesheet';document.head.appendChild(l)}
  const h=q?'https://fonts.googleapis.com/css2?'+q+'&display=swap':'';if(l.getAttribute('href')!==h)l.setAttribute('href',h);
  Object.keys(S.fx).forEach(k=>{B.classList.toggle('no-'+k,!S.fx[k]);B.classList.toggle('on-'+k,!!S.fx[k])});
- Object.assign(B.dataset,{btn:T.btn,lay:T.layout,ha:T.heroAlign,trans:T.trans,rev:T.rev,hover:th.hover,nav:T.navStyle,cursor:T.cursor,dyn:S.wall.dyn});B.classList.toggle('dyn-au',!!S.wall.dynAurora);
+ Object.assign(B.dataset,{ui:T.ui,hl:T.heroLayout,btn:T.btn,lay:T.layout,ha:T.heroAlign,trans:T.trans,rev:T.rev,hover:th.hover,nav:T.navStyle,cursor:T.cursor,dyn:S.wall.dyn});B.classList.toggle('dyn-au',!!S.wall.dynAurora);
  wallpaper(S,media);
  let c=document.getElementById('ccss');if(!c){c=document.createElement('style');c.id='ccss';document.head.appendChild(c)}c.textContent=String(T.css||'').replace(/<\/style/gi,'');
  let f=document.getElementById('fav');if(!f){f=document.createElement('link');f.id='fav';f.rel='icon';document.head.appendChild(f)}
  f.href='data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${T.pink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${Icons[S.site.favicon]||Icons.disc}</svg>`)}
 
 async function load(){
- if(!sb)return{settings:norm(),entries:DEMO,media:[],gb:[],hits:0,demo:true};
- const [s,e,m,h,g]=await Promise.all([sb.from('settings').select('data').eq('id',1).maybeSingle(),sb.from('entries').select('*').order('publish_at',{ascending:false}),
+ if(!sb)return{settings:norm(),entries:DEMO,media:[],gb:[],tracks:[],hits:0,demo:true};
+ const [s,e,m,h,g,tk]=await Promise.all([sb.from('settings').select('data').eq('id',1).maybeSingle(),sb.from('entries').select('*').order('publish_at',{ascending:false}),
   sb.from('media').select('*').order('created_at',{ascending:false}),sb.from('stats').select('hits').eq('id',1).maybeSingle(),
-  sb.from('guestbook').select('name,message,created_at,approved,id').order('created_at',{ascending:false}).limit(100)]);
+  sb.from('guestbook').select('name,message,created_at,approved,id').order('created_at',{ascending:false}).limit(100),
+  sb.from('tracks').select('*').order('sort')]);
  const err=[s,e,m].map(x=>x.error&&x.error.message).filter(Boolean)[0];
- return{settings:norm(s.data&&s.data.data),entries:(e.data||[]).map(x=>({...x,meta:x.meta||{}})),media:m.data||[],gb:g.data||[],hits:(h.data&&h.data.hits)||0,err}}
+ return{settings:norm(s.data&&s.data.data),entries:(e.data||[]).map(x=>({...x,meta:x.meta||{}})),media:m.data||[],gb:g.data||[],tracks:(tk&&tk.data)||[],hits:(h.data&&h.data.hits)||0,err}}
 function sub(cb){if(!sb)return;let t;sb.channel('wc-live').on('postgres_changes',{event:'*',schema:'public'},()=>{clearTimeout(t);t=setTimeout(cb,350)}).subscribe()}
 const bump=()=>sb?sb.rpc('bump_hits').then(r=>r.data):Promise.resolve(0);
 return{DEF,FONTS,DEMO,sb,cfg:C,state,esc,slug,U,md,theme,faces,norm,mix,load,sub,bump}})();

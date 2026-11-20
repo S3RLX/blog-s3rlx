@@ -43,6 +43,21 @@ create or replace function public.touch() returns trigger language plpgsql as $$
 drop trigger if exists t_touch on public.entries;
 create trigger t_touch before update on public.entries for each row execute function public.touch();
 
+-- ---------- khusus pemilik: hanya SATU admin yang boleh ada ----------
+create unique index if not exists one_admin on public.admins((true));
+
+-- ---------- musik ----------
+create table if not exists public.tracks(
+ id uuid primary key default gen_random_uuid(),
+ title text not null, artist text default '', album text default '', year text default '', genre text default '',
+ audio text not null, cover text default '', lyrics text default '', duration int default 0,
+ speed real default 1, sort int default 0, active boolean default true, created_at timestamptz default now());
+alter table public.tracks enable row level security;
+drop policy if exists "tracks read" on public.tracks;
+create policy "tracks read" on public.tracks for select using (active or public.is_admin());
+drop policy if exists "tracks admin" on public.tracks;
+create policy "tracks admin" on public.tracks for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
 -- ---------- keamanan: Row Level Security ----------
 alter table public.admins enable row level security;
 alter table public.settings enable row level security;
@@ -92,6 +107,7 @@ do $$ begin
  begin alter publication supabase_realtime add table public.settings; exception when others then null; end;
  begin alter publication supabase_realtime add table public.guestbook; exception when others then null; end;
  begin alter publication supabase_realtime add table public.media; exception when others then null; end;
+ begin alter publication supabase_realtime add table public.tracks; exception when others then null; end;
 end $$;
 
 -- ---------- LANGKAH TERAKHIR ----------
